@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Modelo clásico de render: más simple para un prototipo.
+  cacheComponents: false,
+  images: { unoptimized: true },
   turbopack: {
     rules: {
       "*.css": {

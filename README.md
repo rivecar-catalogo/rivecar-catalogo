@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rivecar · Catálogo online (prototipo v2 · datos del sistema SIVO)
 
-## Getting Started
+Capa de búsqueda del catálogo Rivecar: 13.102 productos exportados del sistema SIVO el 14-10-2026,
+con búsqueda tolerante por número de parte, referencia, código, nombre o modelo; diez categorías con
+subcategorías; 23 páginas por modelo; precios publicados (IVA incl.); botón «Comprar en la tienda Rivecar»
+que lleva a la ficha de rivecar.sivo.cl con parámetros UTM; lista de cotización por WhatsApp.
+Sin stock: la disponibilidad se confirma en la tienda.
 
-First, run the development server:
+## Correrlo en tu computador
 
-```bash
+Requisitos: Node.js LTS y Git instalados (ya los tienes).
+
+```
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre http://localhost:3000 en el navegador. Para detenerlo: Ctrl + C en la ventana de PowerShell.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Configuración (archivo `.env.local`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Qué hace |
+|---|---|
+| `NEXT_PUBLIC_WHATSAPP` | Número que recibe las cotizaciones, con código de país y sin signos (ej. `56912345678`). Vacío = el botón abre WhatsApp sin destinatario. |
+| `NEXT_PUBLIC_SHOW_PRICES` | `1` muestra precios (los publicados en la tienda Rivecar, IVA incl.); `0` los oculta. |
+| `NEXT_PUBLIC_TIENDA_URL` | Tienda a la que enlaza el botón de compra. Hoy `https://rivecar.sivo.cl`. |
+| `NEXT_PUBLIC_POSTHOG_KEY` | Clave de proyecto de PostHog para registrar búsquedas, búsquedas sin resultado y cotizaciones. Vacío = no se registra nada. |
 
-## Learn More
+Tras cambiar `.env.local` hay que reiniciar `npm run dev`.
 
-To learn more about Next.js, take a look at the following resources:
+## Dónde está cada cosa
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Carpeta / archivo | Contenido |
+|---|---|
+| `src/data/products.json` | Los 13.102 productos (SKU, nombre, modelo, categoría N1/N2, marca, referencias, imagen, precio, modelos, enlace a la tienda). |
+| `src/data/categorias.json`, `src/data/modelos.json` | Diez categorías con subcategorías y 23 modelos con sus conteos. |
+| `public/img/` | 4.581 fotografías locales (catálogo histórico); las demás se cargan desde Google Drive o SIVO por enlace. |
+| `public/data/index.json` | Índice compacto que descarga el navegador para buscar sin servidor. |
+| `src/lib/catalog.ts` | Acceso a los datos, sucursales y horario. |
+| `src/app/` | Las páginas: inicio, `buscar`, `producto/[codigo]`, `familia/[slug]`, `modelo/[slug]`, `cotizar`, `sucursales`. |
+| `src/components/` | Cabecera, pie, buscador, tarjeta de producto, botón de cotización. |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Actualizar el catálogo
 
-## Deploy on Vercel
+Los datos salen del export «productos_exportados» de SIVO (consolidado en
+`Rivecar_Maestro_Export_14OCT2026_consolidado.xlsx`). Para cargar una versión nueva se regeneran
+`src/data/*.json` y `public/data/index.json` con el script de carga (pedir a Soportek). Nunca se incluye el costo.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Imágenes de Google Drive
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Los 2.394 enlaces de Drive se muestran como miniatura (`drive.google.com/thumbnail?id=…`). Solo cargan si
+los archivos están compartidos como «cualquiera con el enlace». Si no cargan, descargar las carpetas de
+Drive a `public/img/` con el nombre del SKU y regenerar los datos.
+
+## Publicar en Vercel
+
+1. Subir el proyecto a GitHub (ver guía paso a paso).
+2. En vercel.com › *Add New › Project* › importar el repositorio `rivecar-catalogo`.
+3. En *Environment Variables* agregar `NEXT_PUBLIC_WHATSAPP` (y PostHog si se usa).
+4. *Deploy*. Vercel entrega una dirección `https://rivecar-catalogo.vercel.app`; después se conecta `catalogo.rivecar.cl`.
+
+## Qué falta para que sea la tienda real
+
+Precio y disponibilidad por sucursal (integración con el sistema comercial), cuentas B2B/B2C,
+carrito con pago (Transbank), facturación electrónica, panel de administración del catálogo.
+Todo eso está dimensionado en la propuesta de Soportek × Connectek × Publi-K.
